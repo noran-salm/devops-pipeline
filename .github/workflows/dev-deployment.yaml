@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - name: Pull Docker image
-        run: docker pull noran-salm/my-app:1.0
+        run: docker pull noransalm/my-app:1.0
 
       - name: Verify image
         run: docker images
