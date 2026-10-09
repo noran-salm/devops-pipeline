@@ -1,0 +1,16 @@
+name: Pull Docker Image
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  pull-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pull Docker image
+        run: docker pull noran-salm/my-app:1.0
+
+      - name: Verify image
+        run: docker images
