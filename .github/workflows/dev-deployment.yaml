@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  docker-pipeline:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,8 +34,8 @@ jobs:
           context: .
           push: true
           tags: |
-            noransalm/devops-pipeline-lab:latest
-            noransalm/devops-pipeline-lab:${{ github.sha }}
+            ${{ vars.DOCKERHUB_USERNAME }}/devops-pipeline-lab:latest
+            ${{ vars.DOCKERHUB_USERNAME }}/devops-pipeline-lab:${{ github.sha }}
 
       # 5. Pull the published image
       - name: Pull Docker image
@@ -44,3 +44,28 @@ jobs:
       # 6. Verify the image
       - name: Verify Docker image
         run: docker image inspect noransalm/devops-pipeline-lab:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+        - name: setup ssh
+          run: |
+            mkdir -p ~/.ssh
+            echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+            chmod 400 ~/.ssh/id_rsa
+            ssh-keyscan -H ${{ vars.EC2_HOST }} >> ~/.ssh/known_hosts
+            
+        - name: Get short commit tag
+          run: echo "short_tag=${GITHUB_SHA::7}" >> $GITHUB_ENV
+        
+        - name: Deploy to EC2
+          run: |
+            ssh -i ~/.ssh/id_rsa ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} << EOF
+              cd /home/ubuntu/web-app
+              export IMAGE_TAG=${{ env.short_tag }}
+              echo ${IMAGE_TAG}
+              docker compose pull
+              docker compose up -d
+            EOF
+
