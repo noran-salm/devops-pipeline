@@ -1,0 +1,6 @@
+  services:
+    web:
+      image: noranslm/devops-pipeline-lab:${IMAGE_TAG} 
+      container_name: devops-pipeline-lab
+      ports: 
+        - "80:80"
