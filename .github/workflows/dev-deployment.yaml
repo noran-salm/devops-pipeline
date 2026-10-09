@@ -20,10 +20,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Check Docker Hub connectivity
-        run: |
-          curl -I --max-time 20 https://registry-1.docker.io/v2/
-          curl -I --max-time 20 "https://auth.docker.io/"  
+      # - name: Check Docker Hub connectivity
+      #   run: |
+      #     curl -I --max-time 20 https://registry-1.docker.io/v2/
+      #     curl -I --max-time 20 "https://auth.docker.io/"  
 
       # 3. Login to Docker Hub
       - name: Login to Docker Hub
@@ -63,14 +63,16 @@ jobs:
 
         - name: Get short commit tag
           run: echo "short_tag=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+        - name: setup docker
+          run:   
         
         - name: Deploy to EC2
           run: |
             ssh -i ~/.ssh/id_rsa ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} << EOF
+              mkdir -p /home/ubuntu/web-app
               cd /home/ubuntu/web-app
               export IMAGE_TAG=${{ env.short_tag }}
-              echo ${IMAGE_TAG}
-              docker compose pull
               docker compose up -d
+              docker compose ps
             EOF
-
