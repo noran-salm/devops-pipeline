@@ -24,12 +24,12 @@ jobs:
           run: |
             python -m venv .venv
             source .venv/bin/activate
-            pip install pytest
+            python -m pip install pytest pytest-cov
 
         - name: Run tests
           run: |
             source .venv/bin/activate
-            python3 -m pytest --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing --cov-report=xml -q
+            python -m pytest --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing --cov-report=xml -q
 
   build:
     needs: Test
