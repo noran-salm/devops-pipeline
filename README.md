@@ -8,7 +8,7 @@ This project demonstrates a basic Continuous Integration and Continuous Deployme
 
 ## Architecture
 
-```mermaid
+```
 flowchart TD
     A[Developer Pushes Code] --> B[GitHub Repository]
     B --> C[GitHub Actions Workflow]
