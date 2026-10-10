@@ -76,23 +76,33 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    steps:
-        - name: setup ssh
-          run: |
-            mkdir -p ~/.ssh
-            echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-            chmod 400 ~/.ssh/id_rsa
-            ssh-keyscan -H ${{ vars.EC2_HOST }} >> ~/.ssh/known_hosts
 
-        - name: Get short commit tag
-          run: echo "short_tag=${GITHUB_SHA::7}" >> $GITHUB_ENV
-        
-        - name: Deploy to EC2
-          run: |
-            ssh -i ~/.ssh/id_rsa ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} << EOF
-              mkdir -p /home/ubuntu/web-app
-              cd /home/ubuntu/web-app
-              export IMAGE_TAG=${{ env.short_tag }}
-              docker compose up -d
-              docker compose ps
-            EOF
+    steps:
+      - name: Setup SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          EC2_HOST: ${{ vars.EC2_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+          chmod 400 ~/.ssh/known_hosts
+
+      - name: Get short commit tag
+        run: echo "short_tag=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Deploy to EC2
+        env:
+          EC2_HOST: ${{ vars.EC2_HOST }}
+          EC2_USER: ${{ vars.EC2_USER }}
+          IMAGE_TAG: ${{ env.short_tag }}
+        run: |
+          ssh -i ~/.ssh/id_rsa "$EC2_USER@$EC2_HOST" << EOF
+            set -e
+            cd /home/ubuntu/web-app
+            export IMAGE_TAG="$IMAGE_TAG"
+            docker compose up -d
+            docker compose ps
+          EOF
