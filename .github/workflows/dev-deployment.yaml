@@ -32,8 +32,8 @@ jobs:
             python3 -m pytest --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing --cov-report=xml -q
 
   build:
+    needs: Test
     runs-on: ubuntu-latest
-
     steps:
       # 1. Get source code from GitHub
       - name: Checkout code
